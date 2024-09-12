@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import Music from "../models/music.model";
 
-
-
 export const createMusic = async (req: Request, res: Response) => {
   try {
     const { title, album, artist, genre } = req.body;
@@ -10,19 +8,28 @@ export const createMusic = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "No music uploaded" });
     }
 
-    const music = new Music({ title, album, artist, genre, path:req.file.filename });
+    const music = new Music({
+      title,
+      album,
+      artist,
+      genre,
+      path: req.file.filename,
+    });
     const savedMusic = await music.save();
     res.status(201).json(savedMusic);
-  } catch (err:any) {
+  } catch (err: any) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
 
 export const getMusic = async (req: Request, res: Response) => {
   try {
-    const music = await Music.find();
+    const { q } = req.query;
+    const filter = q ? { title: { $regex: q.toString(), $options: "i" } } : {};
+    const music = await Music.find(filter);
     res.json(music);
-  } catch (err:any) {
+  } catch (err: any) {
     res.status(500).json({ message: err.message });
   }
 };
@@ -35,7 +42,7 @@ export const getMusicById = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Music not found" });
     }
     res.json(music);
-  } catch (err:any) {
+  } catch (err: any) {
     res.status(500).json({ message: err.message });
   }
 };
@@ -49,7 +56,7 @@ export const updateMusic = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Music not found" });
     }
     res.json(music);
-  } catch (err:any) {
+  } catch (err: any) {
     res.status(500).json({ message: err.message });
   }
 };
@@ -62,7 +69,7 @@ export const deleteMusic = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Music not found" });
     }
     res.status(204).send();
-  } catch (err:any) {
+  } catch (err: any) {
     res.status(500).json({ message: err.message });
   }
 };
